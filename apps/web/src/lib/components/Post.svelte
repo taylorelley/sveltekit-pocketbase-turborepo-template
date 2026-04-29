@@ -1,15 +1,21 @@
-<script>
+<script lang="ts">
 	import Trash from '$lib/icons/Trash.svelte';
+	import type { PostRecordModel } from '../../types/db';
 
-	/** @type {PostRecordModel} */
-	export let post;
-	/** @type {function(): Promise<void>} */
-	export let deletePost;
-	/** @type {function(): Promise<void>} */
-	export let incrementCount;
+	let {
+		post,
+		deletePost,
+		incrementCount
+	}: {
+		post: PostRecordModel;
+		deletePost: () => Promise<void>;
+		incrementCount: () => Promise<void>;
+	} = $props();
 
-	/** @type {"idle" | "deleting" | "incrementing"} */
-	let state = 'idle';
+	let state = $state<'idle' | 'deleting' | 'incrementing'>('idle');
+
+	const deleteDisabled = $derived(state === 'deleting');
+	const incrementDisabled = $derived(state === 'incrementing');
 
 	async function onClickDeletePost() {
 		state = 'deleting';
@@ -22,9 +28,6 @@
 		await incrementCount();
 		state = 'idle';
 	}
-
-	$: deleteDisabled = state === 'deleting';
-	$: incrementDisabled = state === 'incrementing';
 </script>
 
 <div class="card bg-base-300 w-96 shadow-xl">
@@ -37,13 +40,13 @@
 		<p>Count: {post.count}</p>
 		<div class="card-actions justify-end">
 			<button
-				on:click={onClickDeletePost}
+				onclick={onClickDeletePost}
 				class="btn btn-error btn-outline"
 				disabled={deleteDisabled}
 			>
 				<Trash />
 			</button>
-			<button on:click={onClickIncrementCount} class="btn btn-outline" disabled={incrementDisabled}>
+			<button onclick={onClickIncrementCount} class="btn btn-outline" disabled={incrementDisabled}>
 				Increment count
 			</button>
 		</div>

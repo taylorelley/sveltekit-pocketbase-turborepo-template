@@ -3,7 +3,7 @@ services:
     build:
       context: ./apps/pocketbase
       args:
-        - VERSION=0.22.18
+        - VERSION=0.26.8
     restart: unless-stopped
     ports:
       - '8090:8090'

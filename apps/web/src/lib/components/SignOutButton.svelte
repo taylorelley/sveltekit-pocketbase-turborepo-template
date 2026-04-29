@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation';
 	import { pb } from '$lib/pocketbase';
 
@@ -8,4 +8,4 @@
 	}
 </script>
 
-<button on:click={signOut}>Sign out</button>
+<button onclick={signOut}>Sign out</button>

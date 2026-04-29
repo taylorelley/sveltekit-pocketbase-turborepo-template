@@ -1,24 +1,21 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation';
+	import type { AuthContext } from '$lib/auth';
 	import MenuListItems from '$lib/components/MenuListItems.svelte';
-	import { getContext, onMount } from 'svelte';
+	import { getContext } from 'svelte';
 
-	/** @type {UserStore} */
-	const user = getContext('user');
+	let { children } = $props();
 
-	onMount(() => {
-		const unsubscribe = user.subscribe(async (value) => {
-			if (!value) {
-				await goto('/sign-in');
-			}
-		});
-		return () => {
-			unsubscribe();
-		};
+	const auth = getContext<AuthContext>('auth');
+
+	$effect(() => {
+		if (!auth.user) {
+			goto('/sign-in');
+		}
 	});
 </script>
 
-{#if $user}
+{#if auth.user}
 	<div class="drawer">
 		<input id="my-drawer" type="checkbox" class="drawer-toggle" />
 		<div class="drawer-content min-h-screen flex flex-col">
@@ -44,18 +41,16 @@
 				<div class="flex-1 px-2"><a class="btn btn-ghost" href="/home">Home</a></div>
 				<div class="hidden flex-none lg:block">
 					<ul class="menu menu-horizontal">
-						<!-- Navbar menu content here -->
 						<MenuListItems />
 					</ul>
 				</div>
 			</div>
 			<!-- Page content here -->
-			<slot />
+			{@render children()}
 		</div>
 		<div class="drawer-side">
 			<label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
 			<ul class="menu bg-base-200 min-h-full w-80 p-4">
-				<!-- Sidebar content here -->
 				<MenuListItems />
 			</ul>
 		</div>

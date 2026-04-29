@@ -1,53 +1,42 @@
-<script>
+<script lang="ts">
 	import Post from '$lib/components/Post.svelte';
 	import { createPost } from '$lib/db/create-post';
 	import { deletePost } from '$lib/db/delete-post';
 	import { getPosts } from '$lib/db/get-posts';
 	import { updatePost } from '$lib/db/update-post';
-	import { getContext, onMount } from 'svelte';
+	import { getContext } from 'svelte';
+	import type { AuthContext } from '$lib/auth';
+	import type { PostRecordModel } from '../../../types/db';
 
-	/** @type {UserStore} */
-	const user = getContext('user');
+	const auth = getContext<AuthContext>('auth');
 
-	/** @type {PostRecordModel[] | null} */
-	let data = null;
-	let error = '';
-	let loading = false;
+	let data = $state<PostRecordModel[] | null>(null);
+	let error = $state('');
+	let loading = $state(false);
 
 	async function onClickNewPost() {
-		if (!$user) {
-			error = 'You must sign in to create a post';
-			alert(`Error: ${error}`);
+		if (!auth.user) {
+			alert('You must sign in to create a post');
 			return;
 		}
 
 		error = '';
 		loading = true;
 
-		const createPostRes = await createPost({ count: 0, user: $user.id });
+		const createPostRes = await createPost({ count: 0, user: auth.user.id });
 
 		if (createPostRes.error) {
 			error = createPostRes.error;
+			alert(`Error creating new post: ${error}`);
 		} else if (createPostRes.data) {
 			data = [createPostRes.data, ...(data ?? [])];
-		} else {
-			error = 'No data';
-		}
-
-		if (error) {
-			alert(`Error creating new post: ${error}`);
 		}
 
 		loading = false;
 	}
 
-	/** @param {number} index */
-	async function onClickIncrementCount(index) {
-		if (!data) {
-			error = 'No data';
-			alert(`Error incrementing count: ${error}`);
-			return;
-		}
+	async function onClickIncrementCount(index: number) {
+		if (!data) return;
 
 		error = '';
 		const post = data[index];
@@ -55,24 +44,14 @@
 
 		if (updatePostRes.error) {
 			error = updatePostRes.error;
-		} else if (updatePostRes.data) {
-			data = data.map((p, i) => (i === index ? updatePostRes.data : p));
-		} else {
-			error = 'No data';
-		}
-
-		if (error) {
 			alert(`Error incrementing count: ${error}`);
+		} else if (updatePostRes.data) {
+			data = data.map((p, i) => (i === index ? updatePostRes.data! : p));
 		}
 	}
 
-	/** @param {number} index */
-	async function onClickDeletePost(index) {
-		if (!data) {
-			error = 'No data';
-			alert(`Error deleting post: ${error}`);
-			return;
-		}
+	async function onClickDeletePost(index: number) {
+		if (!data) return;
 
 		error = '';
 		const post = data[index];
@@ -80,29 +59,21 @@
 
 		if (deletePostRes.error) {
 			error = deletePostRes.error;
+			alert(`Error deleting post: ${error}`);
 		} else {
 			data = data.filter((_, i) => i !== index);
 		}
-
-		if (error) {
-			alert(`Error deleting post: ${error}`);
-		}
 	}
 
-	onMount(async () => {
-		const getPostsRes = await getPosts();
-
-		if (getPostsRes.error) {
-			error = getPostsRes.error;
-		} else if (getPostsRes.data) {
-			data = getPostsRes.data;
-		} else {
-			error = 'No data';
-		}
-
-		if (error) {
-			alert(`Error getting posts: ${error}`);
-		}
+	$effect(() => {
+		getPosts().then((getPostsRes) => {
+			if (getPostsRes.error) {
+				error = getPostsRes.error;
+				alert(`Error getting posts: ${error}`);
+			} else if (getPostsRes.data) {
+				data = getPostsRes.data;
+			}
+		});
 	});
 </script>
 
@@ -111,12 +82,12 @@
 	{#if error}
 		<p class="text-error">{error}</p>
 	{/if}
-	<button on:click={onClickNewPost} class="btn btn-primary" disabled={loading}>New post</button>
+	<button onclick={onClickNewPost} class="btn btn-primary" disabled={loading}>New post</button>
 	{#if data === null}
-		<div class="loading loading-spinner" />
+		<span class="loading loading-spinner"></span>
 	{:else}
 		<ul class="flex flex-col gap-4">
-			{#each data as post, index}
+			{#each data as post, index (post.id)}
 				<li>
 					<Post
 						{post}

@@ -1,15 +1,15 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation';
 	import { pb } from '$lib/pocketbase';
 
-	let error = '';
-	let loading = false;
+	let error = $state('');
+	let loading = $state(false);
+	let email = $state('');
+	let password = $state('');
+	let passwordConfirm = $state('');
 
-	let email = '';
-	let password = '';
-	let passwordConfirm = '';
-
-	async function onSubmit() {
+	async function onSubmit(event: SubmitEvent) {
+		event.preventDefault();
 		if (!email || !password || !passwordConfirm) {
 			error = 'Please fill out all fields.';
 			return;
@@ -26,21 +26,17 @@
 		try {
 			const res = await fetch(`/api/create-account`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
+				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email, password, passwordConfirm })
 			});
 			const resJson = await res.json();
 			if (!res.ok) {
 				throw new Error(resJson.error);
 			}
-			console.log('### [Created new user]:', resJson.data);
-			const authResult = await pb.collection('users').authWithPassword(email, password);
-			console.log('### [Authenticated user]:', authResult);
+			await pb.collection('users').authWithPassword(email, password);
 			await goto('/home');
 		} catch (err) {
-			error = /** @type {Error} */ (err).message;
+			error = (err as Error).message;
 		}
 		loading = false;
 	}
@@ -54,57 +50,51 @@
 		class="flex w-full flex-col items-center justify-center gap-8 p-4 lg:max-w-screen-md lg:flex-row-reverse"
 	>
 		<div class="card bg-base-300 w-full max-w-sm shadow-2xl">
-			<form on:submit|preventDefault={onSubmit} class="card-body">
+			<form onsubmit={onSubmit} class="card-body">
 				<h1 class="card-title">Create your account</h1>
-				<div class="form-control">
-					<label class="label" for="email">
-						<span class="label-text">Email</span>
-					</label>
+				<fieldset class="fieldset">
+					<legend class="fieldset-legend">Email</legend>
 					<input
 						bind:value={email}
 						id="email"
 						type="email"
 						placeholder="email"
-						class="input input-bordered"
+						class="input w-full"
 						required
 					/>
-				</div>
-				<div class="form-control">
-					<label class="label" for="password">
-						<span class="label-text">Password</span>
-					</label>
+				</fieldset>
+				<fieldset class="fieldset">
+					<legend class="fieldset-legend">Password</legend>
 					<input
 						bind:value={password}
 						id="password"
 						type="password"
 						placeholder="password"
-						class="input input-bordered"
+						class="input w-full"
 						required
 					/>
-				</div>
-				<div class="form-control">
-					<label class="label" for="confirm-password">
-						<span class="label-text">Confirm password</span>
-					</label>
+				</fieldset>
+				<fieldset class="fieldset">
+					<legend class="fieldset-legend">Confirm password</legend>
 					<input
 						bind:value={passwordConfirm}
 						id="confirm-password"
 						type="password"
 						placeholder="confirm password"
-						class="input input-bordered"
+						class="input w-full"
 						required
 					/>
-				</div>
-				<div class="form-control mt-6 gap-4">
+				</fieldset>
+				<div class="mt-6 flex flex-col gap-4">
 					<button class="btn btn-primary">
 						{#if loading}
-							<div class="loading loading-spinner" />
+							<span class="loading loading-spinner"></span>
 						{:else}
 							Create account
 						{/if}
 					</button>
 					{#if error}
-						<p class="text-error text-center pt-4">{error}</p>
+						<p class="text-error pt-4 text-center">{error}</p>
 					{/if}
 				</div>
 			</form>

@@ -1,8 +1,9 @@
 import { newPocketBase } from '$lib/server/pocketbase';
 import { json } from '@sveltejs/kit';
+import type { UserAuthRefresh } from '../../../types/db';
+import type { RequestHandler } from './$types';
 
-/** @type {import('./$types').RequestHandler} */
-export async function POST({ request }) {
+export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const authHeader = request.headers.get('x-auth-token');
 		if (!authHeader) {
@@ -14,19 +15,14 @@ export async function POST({ request }) {
 		const pb = newPocketBase();
 		pb.authStore.save(authHeader);
 
-		/** @type {UserAuthRefresh} */
-		const user = await pb.collection('users').authRefresh();
+		const user: UserAuthRefresh = await pb.collection('users').authRefresh();
 
 		// Do stuff...
 
 		pb.authStore.clear();
 
-		return json({
-			data: { body, user }
-		});
+		return json({ data: { body, user } });
 	} catch (err) {
-		return json({
-			error: /** @type {Error} */ (err).message
-		});
+		return json({ error: (err as Error).message });
 	}
-}
+};
