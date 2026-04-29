@@ -5,7 +5,7 @@
 
 	let { children } = $props();
 
-	const auth = $state({ token: pb.authStore.token, user: pb.authStore.model });
+	const auth = $state({ token: pb.authStore.token, user: pb.authStore.record });
 	setContext('auth', auth);
 
 	$effect(() => {
