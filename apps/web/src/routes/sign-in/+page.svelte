@@ -9,6 +9,7 @@
 
 	async function onSubmit(event: SubmitEvent) {
 		event.preventDefault();
+		if (loading) return;
 		if (!email || !password) {
 			error = 'Please fill out all fields.';
 			return;
@@ -19,8 +20,9 @@
 			await goto('/home');
 		} catch (err) {
 			error = (err as Error).message;
+		} finally {
+			loading = false;
 		}
-		loading = false;
 	}
 </script>
 
@@ -58,7 +60,7 @@
 					</div>
 				</fieldset>
 				<div class="mt-6 flex flex-col gap-4">
-					<button class="btn btn-primary">
+					<button class="btn btn-primary" disabled={loading}>
 						{#if loading}
 							<span class="loading loading-spinner"></span>
 						{:else}

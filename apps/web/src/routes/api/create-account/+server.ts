@@ -18,6 +18,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		return json({ data: { createUserRecordModel } });
 	} catch (err) {
-		return json({ error: (err as Error).message });
+		return json({ error: (err as Error).message }, { status: 500 });
 	}
 };

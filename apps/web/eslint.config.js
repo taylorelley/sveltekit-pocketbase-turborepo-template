@@ -4,7 +4,7 @@ import svelteConfig from './svelte.config.js';
 export default [
 	...sharedConfig,
 	{
-		files: ['**/*.svelte'],
+		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 		languageOptions: {
 			parserOptions: {
 				svelteConfig

@@ -54,6 +54,7 @@
 				{/if}
 				<div class="mt-6 flex flex-col gap-4">
 					<button
+						type={success ? 'button' : 'submit'}
 						onclick={success ? () => goto('/sign-in') : undefined}
 						class="btn btn-primary"
 					>

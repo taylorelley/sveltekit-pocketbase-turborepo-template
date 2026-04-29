@@ -14,19 +14,24 @@
 
 	let state = $state<'idle' | 'deleting' | 'incrementing'>('idle');
 
-	const deleteDisabled = $derived(state === 'deleting');
-	const incrementDisabled = $derived(state === 'incrementing');
+	const busy = $derived(state !== 'idle');
 
 	async function onClickDeletePost() {
 		state = 'deleting';
-		await deletePost();
-		state = 'idle';
+		try {
+			await deletePost();
+		} finally {
+			state = 'idle';
+		}
 	}
 
 	async function onClickIncrementCount() {
 		state = 'incrementing';
-		await incrementCount();
-		state = 'idle';
+		try {
+			await incrementCount();
+		} finally {
+			state = 'idle';
+		}
 	}
 </script>
 
@@ -42,11 +47,11 @@
 			<button
 				onclick={onClickDeletePost}
 				class="btn btn-error btn-outline"
-				disabled={deleteDisabled}
+				disabled={busy}
 			>
 				<Trash />
 			</button>
-			<button onclick={onClickIncrementCount} class="btn btn-outline" disabled={incrementDisabled}>
+			<button onclick={onClickIncrementCount} class="btn btn-outline" disabled={busy}>
 				Increment count
 			</button>
 		</div>

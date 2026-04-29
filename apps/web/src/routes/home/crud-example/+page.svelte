@@ -23,7 +23,7 @@
 		error = '';
 		loading = true;
 
-		const createPostRes = await createPost({ count: 0, user: auth.user.id });
+		const createPostRes = await createPost({ count: 0 });
 
 		if (createPostRes.error) {
 			error = createPostRes.error;
@@ -69,6 +69,7 @@
 		getPosts().then((getPostsRes) => {
 			if (getPostsRes.error) {
 				error = getPostsRes.error;
+				data = [];
 				alert(`Error getting posts: ${error}`);
 			} else if (getPostsRes.data) {
 				data = getPostsRes.data;

@@ -10,11 +10,12 @@
 
 	async function onSubmit(event: SubmitEvent) {
 		event.preventDefault();
+		if (loading) return;
 		if (!email || !password || !passwordConfirm) {
 			error = 'Please fill out all fields.';
 			return;
 		}
-		if (password.length < 8 || passwordConfirm.length > 72) {
+		if (password.length < 8 || password.length > 72) {
 			error = 'Password must be between 8 and 72 characters.';
 			return;
 		}
@@ -37,8 +38,9 @@
 			await goto('/home');
 		} catch (err) {
 			error = (err as Error).message;
+		} finally {
+			loading = false;
 		}
-		loading = false;
 	}
 </script>
 
@@ -86,7 +88,7 @@
 					/>
 				</fieldset>
 				<div class="mt-6 flex flex-col gap-4">
-					<button class="btn btn-primary">
+					<button class="btn btn-primary" disabled={loading}>
 						{#if loading}
 							<span class="loading loading-spinner"></span>
 						{:else}
