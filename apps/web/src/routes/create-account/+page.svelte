@@ -11,6 +11,7 @@
 	async function onSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		if (loading) return;
+		error = '';
 		if (!email || !password || !passwordConfirm) {
 			error = 'Please fill out all fields.';
 			return;

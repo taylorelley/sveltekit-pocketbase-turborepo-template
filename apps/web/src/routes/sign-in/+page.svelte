@@ -10,6 +10,7 @@
 	async function onSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		if (loading) return;
+		error = '';
 		if (!email || !password) {
 			error = 'Please fill out all fields.';
 			return;
