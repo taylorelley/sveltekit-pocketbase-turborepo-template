@@ -17,7 +17,7 @@
 		loading = true;
 		try {
 			await pb.collection('users').authWithPassword(email, password);
-			await goto('/home');
+			goto('/home');
 		} catch (err) {
 			error = (err as Error).message;
 		} finally {
