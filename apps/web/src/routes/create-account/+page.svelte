@@ -35,7 +35,7 @@
 			if (!res.ok) {
 				throw new Error(resJson.error);
 			}
-			await pb.collection('users').authWithPassword(email, password);
+			pb.authStore.save(resJson.data.token, resJson.data.record);
 			goto('/home');
 		} catch (err) {
 			error = (err as Error).message;

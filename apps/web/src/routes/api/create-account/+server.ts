@@ -20,14 +20,16 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ error: 'Invalid account payload.' }, { status: 400 });
 		}
 
-		const pb = newPocketBase();
-		await pb.collection('_superusers').authWithPassword(env.POCKETBASE_ADMIN_EMAIL!, env.POCKETBASE_ADMIN_PASSWORD!);
-		const createUserRecordModel = await pb
-			.collection('users')
-			.create({ email, password, passwordConfirm });
-		pb.authStore.clear();
+		const pbAdmin = newPocketBase();
+		await pbAdmin.collection('_superusers').authWithPassword(env.POCKETBASE_ADMIN_EMAIL!, env.POCKETBASE_ADMIN_PASSWORD!);
+		await pbAdmin.collection('users').create({ email, password, passwordConfirm });
 
-		return json({ data: { createUserRecordModel } }, { status: 201 });
+		// Authenticate as the new user server-side so the client gets a token
+		// without needing a second round-trip authWithPassword call.
+		const pbUser = newPocketBase();
+		const authData = await pbUser.collection('users').authWithPassword(email, password);
+
+		return json({ data: { token: authData.token, record: authData.record } }, { status: 201 });
 	} catch (err) {
 		console.error('create-account failed:', err);
 		return json({ error: 'Unable to create account.' }, { status: 500 });
