@@ -6,8 +6,19 @@ import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
-		const body: ApiCreateAccountParams = await request.json();
+		const body = (await request.json()) as Partial<ApiCreateAccountParams>;
 		const { email, password, passwordConfirm } = body;
+
+		if (
+			typeof email !== 'string' ||
+			typeof password !== 'string' ||
+			typeof passwordConfirm !== 'string' ||
+			password !== passwordConfirm ||
+			password.length < 8 ||
+			password.length > 72
+		) {
+			return json({ error: 'Invalid account payload.' }, { status: 400 });
+		}
 
 		const pb = newPocketBase();
 		await pb.collection('_superusers').authWithPassword(env.POCKETBASE_ADMIN_EMAIL!, env.POCKETBASE_ADMIN_PASSWORD!);
@@ -16,8 +27,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			.create({ email, password, passwordConfirm });
 		pb.authStore.clear();
 
-		return json({ data: { createUserRecordModel } });
+		return json({ data: { createUserRecordModel } }, { status: 201 });
 	} catch (err) {
-		return json({ error: (err as Error).message }, { status: 500 });
+		console.error('create-account failed:', err);
+		return json({ error: 'Unable to create account.' }, { status: 500 });
 	}
 };

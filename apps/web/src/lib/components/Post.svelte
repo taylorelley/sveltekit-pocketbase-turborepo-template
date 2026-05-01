@@ -45,13 +45,15 @@
 		<p>Count: {post.count}</p>
 		<div class="card-actions justify-end">
 			<button
+				type="button"
 				onclick={onClickDeletePost}
+				aria-label="Delete post"
 				class="btn btn-error btn-outline"
 				disabled={busy}
 			>
 				<Trash />
 			</button>
-			<button onclick={onClickIncrementCount} class="btn btn-outline" disabled={busy}>
+			<button type="button" onclick={onClickIncrementCount} class="btn btn-outline" disabled={busy}>
 				Increment count
 			</button>
 		</div>

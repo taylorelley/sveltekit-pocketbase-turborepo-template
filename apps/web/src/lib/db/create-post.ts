@@ -13,6 +13,7 @@ export async function createPost(data: Pick<Post, 'count'>) {
 		);
 		return { data: record };
 	} catch (err) {
-		return { error: (err as Error).message };
+		console.error('createPost failed:', err);
+		return { error: 'Failed to create post. Please try again.' };
 	}
 }
