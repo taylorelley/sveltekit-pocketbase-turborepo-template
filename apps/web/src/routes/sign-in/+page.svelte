@@ -1,27 +1,29 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation';
 	import { pb } from '$lib/pocketbase';
 
-	let error = '';
-	let loading = false;
+	let error = $state('');
+	let loading = $state(false);
+	let email = $state('');
+	let password = $state('');
 
-	let email = '';
-	let password = '';
-
-	async function onSubmit() {
+	async function onSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		if (loading) return;
+		error = '';
 		if (!email || !password) {
 			error = 'Please fill out all fields.';
 			return;
 		}
 		loading = true;
 		try {
-			const authResult = await pb.collection('users').authWithPassword(email, password);
-			console.log('### [Authenticated user]', authResult);
-			await goto('/home');
+			await pb.collection('users').authWithPassword(email, password);
+			goto('/home');
 		} catch (err) {
-			error = /** @type {Error} */ (err).message;
+			error = (err as Error).message;
+		} finally {
+			loading = false;
 		}
-		loading = false;
 	}
 </script>
 
@@ -31,49 +33,43 @@
 <div class="flex min-h-screen w-full items-center justify-center">
 	<div class="flex w-full flex-col items-center gap-8 p-4 lg:max-w-screen-md lg:flex-row">
 		<div class="card bg-base-300 w-full max-w-sm shadow-2xl">
-			<form on:submit|preventDefault={onSubmit} class="card-body">
+			<form onsubmit={onSubmit} class="card-body">
 				<h1 class="card-title">Sign in to your account</h1>
-				<div class="form-control">
-					<label class="label" for="email">
-						<span class="label-text">Email</span>
-					</label>
+				<fieldset class="fieldset">
+					<legend class="fieldset-legend">Email</legend>
 					<input
 						bind:value={email}
 						id="email"
 						type="email"
 						placeholder="email"
-						class="input input-bordered"
+						class="input w-full"
 						required
 					/>
-				</div>
-				<div class="form-control">
-					<label class="label" for="password">
-						<span class="label-text">Password</span>
-					</label>
+				</fieldset>
+				<fieldset class="fieldset">
+					<legend class="fieldset-legend">Password</legend>
 					<input
 						bind:value={password}
 						id="password"
 						type="password"
 						placeholder="password"
-						class="input input-bordered"
+						class="input w-full"
 						required
 					/>
-					<label class="label" for="forgot-password">
-						<a id="forgot-password" class="link-hover link label-text-alt" href="/reset-password"
-							>Forgot password?</a
-						>
-					</label>
-				</div>
-				<div class="form-control mt-6">
-					<button class="btn btn-primary">
+					<div class="fieldset-label">
+						<a class="link link-hover" href="/reset-password">Forgot password?</a>
+					</div>
+				</fieldset>
+				<div class="mt-6 flex flex-col gap-4">
+					<button class="btn btn-primary" disabled={loading}>
 						{#if loading}
-							<div class="loading loading-spinner" />
+							<span class="loading loading-spinner"></span>
 						{:else}
 							Sign in
 						{/if}
 					</button>
 					{#if error}
-						<p class="text-error text-center pt-4">{error}</p>
+						<p class="text-error pt-4 text-center">{error}</p>
 					{/if}
 				</div>
 			</form>

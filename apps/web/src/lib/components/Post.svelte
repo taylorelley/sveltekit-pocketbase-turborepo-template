@@ -1,30 +1,38 @@
-<script>
+<script lang="ts">
 	import Trash from '$lib/icons/Trash.svelte';
+	import type { PostRecordModel } from '../../types/db';
 
-	/** @type {PostRecordModel} */
-	export let post;
-	/** @type {function(): Promise<void>} */
-	export let deletePost;
-	/** @type {function(): Promise<void>} */
-	export let incrementCount;
+	let {
+		post,
+		deletePost,
+		incrementCount
+	}: {
+		post: PostRecordModel;
+		deletePost: () => Promise<void>;
+		incrementCount: () => Promise<void>;
+	} = $props();
 
-	/** @type {"idle" | "deleting" | "incrementing"} */
-	let state = 'idle';
+	let state = $state<'idle' | 'deleting' | 'incrementing'>('idle');
+
+	const busy = $derived(state !== 'idle');
 
 	async function onClickDeletePost() {
 		state = 'deleting';
-		await deletePost();
-		state = 'idle';
+		try {
+			await deletePost();
+		} finally {
+			state = 'idle';
+		}
 	}
 
 	async function onClickIncrementCount() {
 		state = 'incrementing';
-		await incrementCount();
-		state = 'idle';
+		try {
+			await incrementCount();
+		} finally {
+			state = 'idle';
+		}
 	}
-
-	$: deleteDisabled = state === 'deleting';
-	$: incrementDisabled = state === 'incrementing';
 </script>
 
 <div class="card bg-base-300 w-96 shadow-xl">
@@ -37,13 +45,15 @@
 		<p>Count: {post.count}</p>
 		<div class="card-actions justify-end">
 			<button
-				on:click={onClickDeletePost}
+				type="button"
+				onclick={onClickDeletePost}
+				aria-label="Delete post"
 				class="btn btn-error btn-outline"
-				disabled={deleteDisabled}
+				disabled={busy}
 			>
 				<Trash />
 			</button>
-			<button on:click={onClickIncrementCount} class="btn btn-outline" disabled={incrementDisabled}>
+			<button type="button" onclick={onClickIncrementCount} class="btn btn-outline" disabled={busy}>
 				Increment count
 			</button>
 		</div>

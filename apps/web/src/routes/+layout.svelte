@@ -1,28 +1,20 @@
-<script>
+<script lang="ts">
 	import { pb } from '$lib/pocketbase';
-	import { onMount, setContext } from 'svelte';
-	import { writable } from 'svelte/store';
+	import { setContext } from 'svelte';
 	import '../app.css';
 
-	const token = writable(pb.authStore.token);
-	const user = writable(pb.authStore.model);
+	let { children } = $props();
 
-	onMount(() => {
-		const unsubscribe = pb.authStore.onChange((newToken, model) => {
-			console.log(`### [/+layout.svelte:onChange]:`, { model, newToken });
-			token.set(newToken);
-			user.set(model);
-			if (model) {
-				localStorage.setItem('hasSignedIn', 'true');
-			}
+	const auth = $state({ token: pb.authStore.token, user: pb.authStore.record });
+	setContext('auth', auth);
+
+	$effect(() => {
+		return pb.authStore.onChange((newToken, model) => {
+			auth.token = newToken;
+			auth.user = model;
+			if (model) localStorage.setItem('hasSignedIn', 'true');
 		}, true);
-		return () => {
-			unsubscribe();
-		};
 	});
-
-	setContext('token', token);
-	setContext('user', user);
 </script>
 
-<slot />
+{@render children()}
